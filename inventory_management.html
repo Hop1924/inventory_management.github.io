@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10;--surface:#13161d;--surface2:#1b1f2b;--border:#252936;
+    --accent:#00e5a0;--accent2:#5b8dff;--accent3:#ff6b6b;--accent4:#f5c542;
+    --text:#e8eaf0;--muted:#626880;--muted2:#8890aa;
+    --card-glow:0 0 0 1px #252936, 0 4px 32px rgba(0,229,160,0.04);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
+
+  /* ── Setup Screen ── */
+  #db-setup{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  .setup-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:40px 44px;width:520px;max-width:95vw;box-shadow:0 0 0 1px var(--border),0 24px 80px rgba(0,0,0,.5);}
+  .setup-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+  .setup-logo-icon{width:42px;height:42px;background:var(--accent);border-radius:10px;display:grid;place-items:center;}
+  .setup-title{font-size:20px;font-weight:800;}
+  .setup-sub{font-size:12px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+  .setup-steps{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:20px;}
+  .setup-step{font-size:11.5px;color:var(--muted2);padding:3px 0;display:flex;gap:8px;line-height:1.6;}
+  .setup-step-num{color:var(--accent);font-family:'DM Mono',monospace;font-weight:700;flex-shrink:0;}
+  .setup-section{margin-bottom:18px;}
+  .setup-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:7px;display:block;}
+  .setup-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .15s;}
+  .setup-input:focus{border-color:var(--accent);}
+  .setup-input::placeholder{color:var(--muted);}
+  .setup-help{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6;}
+  .setup-help a{color:var(--accent2);text-decoration:none;}
+  .setup-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+  .setup-btn{width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:800;font-family:'Syne',sans-serif;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .setup-btn:hover{background:#00c98c;}
+  .setup-btn:disabled{background:var(--muted);cursor:not-allowed;}
+  .setup-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+  .setup-demo-btn{width:100%;padding:10px;background:transparent;color:var(--muted2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:all .15s;}
+  .setup-demo-btn:hover{border-color:var(--muted);color:var(--text);}
+  .setup-error{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--accent3);margin-bottom:16px;display:none;line-height:1.6;}
+
+  /* ── Loading ── */
+  .loading-overlay{position:fixed;inset:0;background:rgba(10,12,16,.88);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+  .loading-overlay.hidden{display:none;}
+  .loading-text{font-size:13px;color:var(--muted2);font-family:'DM Mono',monospace;}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;}
+  .spinner-lg{width:28px;height:28px;border-width:3px;border-color:rgba(255,255,255,.15);border-top-color:var(--accent);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ── App Layout ── */
+  #app{display:none;}
+  .layout{display:flex;min-height:100vh;}
+  .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
+  .logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
+  .logo-mark{display:inline-flex;align-items:center;gap:10px;}
+  .logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:grid;place-items:center;}
+  .logo-icon svg{width:18px;height:18px;}
+  .logo-text{font-size:15px;font-weight:800;letter-spacing:.5px;color:var(--text);}
+  .logo-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;margin-top:2px;}
+  nav{padding:16px 12px;flex:1;}
+  .nav-label{font-size:9px;letter-spacing:2px;color:var(--muted);font-family:'DM Mono',monospace;padding:4px 12px 8px;text-transform:uppercase;}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--muted2);transition:all .18s;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(0,229,160,.1);color:var(--accent);}
+  .nav-item svg{width:16px;height:16px;flex-shrink:0;}
+  .nav-badge{margin-left:auto;background:var(--accent3);color:#fff;font-size:10px;padding:1px 6px;border-radius:99px;font-family:'DM Mono',monospace;}
+  .main{margin-left:230px;flex:1;}
+  .topbar{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;position:sticky;top:0;z-index:50;}
+  .page-title{font-size:17px;font-weight:800;letter-spacing:.3px;}
+  .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+  .badge-alert{background:rgba(255,107,107,.12);color:var(--accent3);border:1px solid rgba(255,107,107,.25);font-size:11px;padding:4px 12px;border-radius:6px;font-family:'DM Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .badge-alert::before{content:'●';font-size:8px;}
+  .db-pill{display:flex;align-items:center;gap:7px;padding:5px 12px;background:rgba(0,229,160,.07);border:1px solid rgba(0,229,160,.2);border-radius:7px;font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);cursor:pointer;}
+  .db-pill.offline{background:rgba(255,107,107,.07);border-color:rgba(255,107,107,.2);color:var(--accent3);}
+  .db-dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .content{padding:28px;}
+  .page{display:none;}
+  .page.active{display:block;}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;position:relative;overflow:hidden;box-shadow:var(--card-glow);}
+  .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .stat-card.green::after{background:var(--accent);}
+  .stat-card.blue::after{background:var(--accent2);}
+  .stat-card.red::after{background:var(--accent3);}
+  .stat-card.yellow::after{background:var(--accent4);}
+  .stat-label{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:8px;}
+  .stat-value{font-size:28px;font-weight:800;letter-spacing:-1px;}
+  .stat-value.green{color:var(--accent);}.stat-value.blue{color:var(--accent2);}.stat-value.red{color:var(--accent3);}.stat-value.yellow{color:var(--accent4);}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .section-title{font-size:14px;font-weight:700;}
+  .section-count{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:var(--card-glow);}
+  .table-toolbar{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .search-box{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 12px;flex:1;max-width:260px;}
+  .search-box svg{color:var(--muted);width:14px;height:14px;flex-shrink:0;}
+  .search-box input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'Syne',sans-serif;width:100%;}
+  .search-box input::placeholder{color:var(--muted);}
+  .btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;border:none;transition:all .15s;display:flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--accent);color:#000;}.btn-primary:hover{background:#00c98c;}
+  .btn-ghost{background:var(--surface2);color:var(--muted2);border:1px solid var(--border);}.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+  table{width:100%;border-collapse:collapse;}
+  th{background:var(--surface2);text-align:left;padding:10px 16px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;font-weight:500;border-bottom:1px solid var(--border);}
+  td{padding:11px 16px;font-size:13px;border-bottom:1px solid rgba(37,41,54,.6);color:var(--text);}
+  tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}
+  .mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted2);}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;}
+  .chip-green{background:rgba(0,229,160,.12);color:var(--accent);}
+  .chip-red{background:rgba(255,107,107,.12);color:var(--accent3);}
+  .chip-yellow{background:rgba(245,197,66,.12);color:var(--accent4);}
+  .chip-blue{background:rgba(91,141,255,.12);color:var(--accent2);}
+  .stock-bar{height:5px;background:var(--border);border-radius:99px;width:80px;overflow:hidden;}
+  .stock-fill{height:100%;border-radius:99px;}
+  .notif-panel{background:var(--surface);border:1px solid rgba(255,107,107,.25);border-radius:12px;padding:0;margin-bottom:24px;overflow:hidden;}
+  .notif-header{background:rgba(255,107,107,.08);padding:12px 18px;border-bottom:1px solid rgba(255,107,107,.15);display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--accent3);}
+  .notif-item{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:13px;}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-dot{width:6px;height:6px;background:var(--accent3);border-radius:50%;flex-shrink:0;}
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--card-glow);}
+  .chart-title{font-size:13px;font-weight:700;margin-bottom:16px;color:var(--muted2);}
+  .bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;}
+  .bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .bar{width:100%;border-radius:5px 5px 0 0;transition:all .3s;}
+  .bar:hover{filter:brightness(1.2);}
+  .bar-label{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;white-space:nowrap;}
+  .bar-val{font-size:9px;color:var(--muted2);font-family:'DM Mono',monospace;}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:8px;}
+  .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:480px;max-width:90vw;box-shadow:0 20px 80px rgba(0,0,0,.5);}
+  .modal-title{font-size:16px;font-weight:800;margin-bottom:20px;}
+  .form-row{margin-bottom:16px;}
+  .form-label{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:6px;display:block;}
+  .form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 13px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+  .form-input:focus{border-color:var(--accent);}
+  .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+  select.form-input{cursor:pointer;}option{background:var(--surface2);}
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--accent);z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:8px;box-shadow:0 4px 32px rgba(0,229,160,.15);}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.error{border-color:var(--accent3);color:var(--accent3);}
+  @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}.charts-row{grid-template-columns:1fr;}}
+  @media(max-width:640px){.sidebar{width:56px;}.logo-text,.logo-sub,.nav-item span{display:none;}.main{margin-left:56px;}.nav-item{justify-content:center;padding:10px;}}
+  .fade-in{animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .pulse{animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ SETUP SCREEN ════════════════ -->
+<div id="db-setup">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-logo-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 22 22" stroke="#000" stroke-width="2.2">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="12" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="12" width="7" height="7" rx="1.5"/><rect x="12" y="12" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+      <div><div class="setup-title">InvTrack</div><div class="setup-sub">Connect to MongoDB Atlas</div></div>
+    </div>
+
+    <div class="setup-steps">
+      <div class="setup-step"><span class="setup-step-num">1.</span>Open MongoDB Atlas and copy your cluster connection string</div>
+      <div class="setup-step"><span class="setup-step-num">2.</span>Paste the full URI below</div>
+      <div class="setup-step"><span class="setup-step-num">3.</span>Make sure you ran <code style="color:var(--accent);font-size:11px;">mongodb_seed.js</code> to seed the database first</div>
+      <div class="setup-step"><span class="setup-step-num">4.</span>Click Connect to launch the app</div>
+    </div>
+
+    <div id="setup-error" class="setup-error"></div>
+
+    <div class="setup-section">
+      <label class="setup-label">MongoDB Connection String</label>
+      <input class="setup-input" id="cfg-conn" placeholder="mongodb+srv://hotstarbot9_db_user:dGgXrMecH8kv6IjR@zs.tr3j6l7.mongodb.net/" />
+      <div class="setup-help">Paste your Atlas connection string here. This app stores the URI locally and uses it as the DB connection string.</div>
+    </div>
+    <div class="setup-2col">
+      <div><label class="setup-label">Cluster Name</label><input class="setup-input" id="cfg-cluster" placeholder="ZS" value="ZS" /></div>
+      <div><label class="setup-label">Database Name</label><input class="setup-input" id="cfg-db" placeholder="inventory_db" value="inventory_db" /></div>
+    </div>
+
+    <button class="setup-btn" id="connect-btn" onclick="connectMongo()">
+      <span id="connect-label">🍃 Connect to MongoDB</span>
+    </button>
+    <hr class="setup-divider">
+    <button class="setup-demo-btn" onclick="useDemoData()">⚡ Use Demo Data (no database needed)</button>
+    <div class="setup-help" style="text-align:center;margin-top:8px;">Try the full app instantly with your Excel sample data</div>
+  </div>
+</div>
+
+<!-- ════════════════ LOADING ════════════════ -->
+<div class="loading-overlay hidden" id="loading-overlay">
+  <div class="spinner spinner-lg"></div>
+  <div class="loading-text" id="loading-text">Connecting to MongoDB…</div>
+</div>
+
+<!-- ════════════════ MAIN APP ════════════════ -->
+<div id="app">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-icon"><svg fill="none" viewBox="0 0 18 18" stroke="#000" stroke-width="2"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg></div>
+        <div><div class="logo-text">InvTrack</div><div class="logo-sub">by Deepak EduWorld</div></div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-label">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg><span>Dashboard</span></div>
+      <div class="nav-item" onclick="showPage('inventory',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><path d="M2 4h12l-1 9H3L2 4z"/><path d="M1 2h14"/><path d="M6 7v3m4-3v3"/></svg><span>Inventory</span><span class="nav-badge pulse" id="alert-badge">–</span></div>
+      <div class="nav-item" onclick="showPage('products',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg><span>Products</span></div>
+      <div class="nav-label">Transactions</div>
+      <div class="nav-item" onclick="showPage('purchase',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><path d="M2 3h12l-1.5 8H3.5L2 3z"/><circle cx="6" cy="14" r="1"/><circle cx="11" cy="14" r="1"/></svg><span>Purchase</span></div>
+      <div class="nav-item" onclick="showPage('sales',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><polyline points="1,12 5,7 8,10 11,6 15,4"/></svg><span>Sales</span></div>
+      <div class="nav-label">Master Data</div>
+      <div class="nav-item" onclick="showPage('customers',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span>Customers</span></div>
+      <div class="nav-item" onclick="showPage('vendors',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="1" y="6" width="14" height="9" rx="1"/><path d="M5 6V4a3 3 0 016 0v2"/></svg><span>Vendors</span></div>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost" onclick="loadData()" title="Refresh data from database">↻ Refresh DB</button>
+        <div class="badge-alert" onclick="showPage('inventory',document.querySelector('[onclick*=inventory]'))"><span id="alert-count">–</span> Low Stock Alerts</div>
+        <div class="db-pill" id="db-pill" onclick="disconnectDB()" title="Click to disconnect">
+          <div class="db-dot pulse" id="db-dot"></div>
+          <span id="db-status-text">Connected</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div class="page active fade-in" id="page-dashboard">
+        <div class="stats-row">
+          <div class="stat-card green"><div class="stat-label">TOTAL PRODUCTS</div><div class="stat-value green" id="stat-products">–</div><div class="stat-sub">Across all categories</div></div>
+          <div class="stat-card blue"><div class="stat-label">PURCHASE AMT.</div><div class="stat-value blue" id="stat-purchase">–</div><div class="stat-sub">Total purchased value</div></div>
+          <div class="stat-card yellow"><div class="stat-label">SALES AMT.</div><div class="stat-value yellow" id="stat-sales">–</div><div class="stat-sub">Total sales revenue</div></div>
+          <div class="stat-card red"><div class="stat-label">LOW STOCK ALERTS</div><div class="stat-value red" id="stat-alerts">–</div><div class="stat-sub">Need immediate action</div></div>
+        </div>
+        <div class="notif-panel">
+          <div class="notif-header"><svg width="14" height="14" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><path d="M8 1a5 5 0 00-5 5v3l-1.5 2h13L13 9V6a5 5 0 00-5-5zM6.5 14a1.5 1.5 0 003 0"/></svg>Notifications — Re-Order Required</div>
+          <div id="notif-list"></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card"><div class="chart-title">📦 Stock Levels by Product</div><div class="bar-chart" id="stock-chart"></div></div>
+          <div class="chart-card"><div class="chart-title">💰 Top Sales by Customer</div><div id="sales-chart"></div></div>
+        </div>
+        <div class="section-head"><div class="section-title">Inventory Snapshot</div><div class="section-count" id="dash-inv-count"></div></div>
+        <div class="table-wrap"><table id="dash-table"></table></div>
+      </div>
+
+      <!-- INVENTORY -->
+      <div class="page fade-in" id="page-inventory">
+        <div class="section-head"><div class="section-title">Inventory Overview</div><div class="section-count" id="inv-count"></div></div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-box"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="4"/><path d="M10.5 10.5l3 3"/></svg><input type="text" placeholder="Search inventory…" oninput="filterTable('inv-table',this.value)"></div>
+            <button class="btn btn-ghost" onclick="loadData()">↻ Refresh from DB</button>
+          </div>
+          <table id="inv-table"></table>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="page fade-in" id="page-products">
+        <div class="section-head"><div class="section-title">Products Catalog</div><div class="section-count" id="prod-count"></div></div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-box"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="4"/><path d="M10.5 10.5l3 3"/></svg><input type="text" placeholder="Search products…" oninput="filterTable('prod-table',this.value)"></div>
+            <button class="btn btn-ghost" onclick="loadData()">↻ Refresh DB</button>
+            <button class="btn btn-primary" onclick="openModal('add-product')"><svg width="12" height="12" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>Add Product</button>
+          </div>
+          <table id="prod-table"></table>
+        </div>
+      </div>
+
+      <!-- PURCHASE -->
+      <div class="page fade-in" id="page-purchase">
+        <div class="section-head"><div class="section-title">Purchase Ledger</div><div class="section-count" id="pur-count"></div></div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-box"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="4"/><path d="M10.5 10.5l3 3"/></svg><input type="text" placeholder="Search purchases…" oninput="filterTable('pur-table',this.value)"></div>
+            <button class="btn btn-primary" onclick="openModal('add-purchase')"><svg width="12" height="12" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>New Purchase</button>
+          </div>
+          <table id="pur-table"></table>
+        </div>
+      </div>
+
+      <!-- SALES -->
+      <div class="page fade-in" id="page-sales">
+        <div class="section-head"><div class="section-title">Sales Ledger</div><div class="section-count" id="sal-count"></div></div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-box"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="4"/><path d="M10.5 10.5l3 3"/></svg><input type="text" placeholder="Search sales…" oninput="filterTable('sal-table',this.value)"></div>
+            <button class="btn btn-primary" onclick="openModal('add-sale')"><svg width="12" height="12" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>New Sale</button>
+          </div>
+          <table id="sal-table"></table>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="page fade-in" id="page-customers">
+        <div class="section-head"><div class="section-title">Customers</div><div class="section-count" id="cust-count"></div></div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-box"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="4"/><path d="M10.5 10.5l3 3"/></svg><input type="text" placeholder="Search customers…" oninput="filterTable('cust-table',this.value)"></div>
+            <button class="btn btn-ghost" onclick="loadData()">↻ Refresh DB</button>
+            <button class="btn btn-primary" onclick="openModal('add-customer')"><svg width="12" height="12" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>Add Customer</button>
+          </div>
+          <table id="cust-table"></table>
+        </div>
+      </div>
+
+      <!-- VENDORS -->
+      <div class="page fade-in" id="page-vendors">
+        <div class="section-head"><div class="section-title">Vendors</div><div class="section-count" id="vend-count"></div></div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-box"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="4"/><path d="M10.5 10.5l3 3"/></svg><input type="text" placeholder="Search vendors…" oninput="filterTable('vend-table',this.value)"></div>
+            <button class="btn btn-ghost" onclick="loadData()">↻ Refresh DB</button>
+            <button class="btn btn-primary" onclick="openModal('add-vendor')"><svg width="12" height="12" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>Add Vendor</button>
+          </div>
+          <table id="vend-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-add-product"><div class="modal">
+  <div class="modal-title">➕ Add New Product</div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">HSN Code</label><input class="form-input" id="np-hsn" placeholder="N1011"></div><div class="form-row"><label class="form-label">Product Name</label><input class="form-input" id="np-name" placeholder="Product name"></div></div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">Cost Price (₹)</label><input class="form-input" id="np-cost" type="number" placeholder="0"></div><div class="form-row"><label class="form-label">Selling Price (₹)</label><input class="form-input" id="np-price" type="number" placeholder="0"></div></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModals()">Cancel</button><button class="btn btn-primary" onclick="addProduct()">Add Product</button></div>
+</div></div>
+
+<div class="modal-bg" id="modal-add-purchase"><div class="modal">
+  <div class="modal-title">🛒 New Purchase Entry</div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">Product</label><select class="form-input" id="pur-product"></select></div><div class="form-row"><label class="form-label">Vendor</label><select class="form-input" id="pur-vendor"></select></div></div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">Units</label><input class="form-input" id="pur-units" type="number" placeholder="0"></div><div class="form-row"><label class="form-label">Date</label><input class="form-input" id="pur-date" type="date"></div></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModals()">Cancel</button><button class="btn btn-primary" onclick="addPurchase()">Add Purchase</button></div>
+</div></div>
+
+<div class="modal-bg" id="modal-add-sale"><div class="modal">
+  <div class="modal-title">💵 New Sale Entry</div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">Customer</label><select class="form-input" id="sal-customer"></select></div><div class="form-row"><label class="form-label">Product</label><select class="form-input" id="sal-product"></select></div></div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">Units</label><input class="form-input" id="sal-units" type="number" placeholder="0"></div><div class="form-row"><label class="form-label">Date</label><input class="form-input" id="sal-date" type="date"></div></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModals()">Cancel</button><button class="btn btn-primary" onclick="addSale()">Add Sale</button></div>
+</div></div>
+
+<div class="modal-bg" id="modal-add-customer"><div class="modal">
+  <div class="modal-title">👤 Add Customer</div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">Customer ID</label><input class="form-input" id="nc-id" placeholder="107"></div><div class="form-row"><label class="form-label">Name</label><input class="form-input" id="nc-name" placeholder="Customer name"></div></div>
+  <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@example.com"></div>
+  <div class="form-row"><label class="form-label">Address</label><input class="form-input" id="nc-addr" placeholder="City, State"></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModals()">Cancel</button><button class="btn btn-primary" onclick="addCustomer()">Add Customer</button></div>
+</div></div>
+
+<div class="modal-bg" id="modal-add-vendor"><div class="modal">
+  <div class="modal-title">🏷️ Add Vendor</div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">HSN Code</label><input class="form-input" id="nv-hsn" placeholder="N1001"></div><div class="form-row"><label class="form-label">Product</label><input class="form-input" id="nv-name" placeholder="Product name"></div></div>
+  <div class="form-row-2"><div class="form-row"><label class="form-label">Vendor Name</label><input class="form-input" id="nv-vendor" placeholder="Vendor company"></div><div class="form-row"><label class="form-label">Phone</label><input class="form-input" id="nv-phone" placeholder="9812xxxxxx"></div></div>
+  <div class="form-row"><label class="form-label">Address</label><input class="form-input" id="nv-addr" placeholder="City, State"></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModals()">Cancel</button><button class="btn btn-primary" onclick="addVendor()">Add Vendor</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONFIG + STATE
+// ══════════════════════════════════════════════════════════════
+let cfg = { connectionString:'', cluster:'ZS', db:'inventory_db' };
+let isDemo = false;
+let data = { products:[], customers:[], vendors:[], purchase:[], sales:[], inventory:[] };
+
+// ══════════════════════════════════════════════════════════════
+//  MONGODB URI / BACKEND PROXY
+// ═════════════════════════════════════════════════════════════=
+async function mongoReq(action, collection, body={}) {
+  const response = await fetch(`http://localhost:5000/api/${action}/${collection}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  return await response.json();
+}
+const mongoFind = (col, filter={}, limit=1000) => mongoReq('find', col, {filter, limit}).then(r=>r.documents||[]);
+const mongoInsertOne = (col, document) => mongoReq('insertOne', col, {document});
+const mongoUpdateOne = (col, filter, update) => mongoReq('updateOne', col, {filter, update});
+const mongoDeleteOne = (col, filter) => mongoReq('deleteOne', col, {filter});
+
+// ══════════════════════════════════════════════════════════════
+//  DEMO DATA
+// ══════════════════════════════════════════════════════════════
+const DEMO = {
+  products:[
+    {hsn:'N1001',name:'Smart Watch',cost:980,price:1176},{hsn:'N1002',name:'Laptop HP xyz i5',cost:34500,price:41400},
+    {hsn:'N1003',name:'Wireless Printer',cost:4600,price:5520},{hsn:'N1004',name:'Desktop',cost:21000,price:25200},
+    {hsn:'N1005',name:'Mouse',cost:200,price:240},{hsn:'N1006',name:'Rgb Keyboard',cost:340,price:408},
+    {hsn:'N1007',name:'Camera',cost:52000,price:62400},{hsn:'N1008',name:'Headphones',cost:799,price:958.8},
+    {hsn:'N1009',name:'Speakers',cost:670,price:804},{hsn:'N1010',name:'Tablets',cost:23500,price:28200},
+  ],
+  customers:[
+    {id:100,name:'Ram sales',email:'Ram@gmail.com',address:'Delhi, India'},{id:101,name:'Atul Ltd.',email:'Atu@gmail.com',address:'121102, Palwal, HR'},
+    {id:102,name:'MK Tech.',email:'MK@gmail.com',address:'Faridabad, 121101'},{id:103,name:'99store',email:'99s@gmail.com',address:'Agra, UP'},
+    {id:104,name:'Rajesh Kumar',email:'Raj@gmail.com',address:'New Delhi, 110011'},{id:105,name:'Amit',email:'Ami@gmail.com',address:'Gurgaon, Sec-15'},
+    {id:106,name:'Jain Tel.',email:'Jai@gmail.com',address:'Janpath, New Delhi'},
+  ],
+  vendors:[
+    {hsn:'N1001',name:'Smart Watch',vendor:'Tech99',phone:'9812xxxxxx',address:'Faridabad, 121101'},
+    {hsn:'N1002',name:'Laptop HP xyz i5',vendor:'Tech99',phone:'9812xxxxxx',address:'Faridabad, 121102'},
+    {hsn:'N1003',name:'Wireless Printer',vendor:'Tech99',phone:'9812xxxxxx',address:'Faridabad, 121103'},
+    {hsn:'N1004',name:'Desktop',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-15'},
+    {hsn:'N1005',name:'Mouse',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-16'},
+    {hsn:'N1006',name:'Rgb Keyboard',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-17'},
+    {hsn:'N1007',name:'Camera',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-18'},
+    {hsn:'N1008',name:'Headphones',vendor:'Compac',phone:'9814xxxxxx',address:'New Delhi, 110012'},
+    {hsn:'N1009',name:'Speakers',vendor:'Compac',phone:'9814xxxxxx',address:'New Delhi, 110013'},
+    {hsn:'N1010',name:'Tablets',vendor:'Compac',phone:'9814xxxxxx',address:'New Delhi, 110014'},
+  ],
+  purchase:[
+    {hsn:'N1005',name:'Mouse',vendor:'GG Traders',date:'2024-01-01',units:20,cost:200,amount:4000},
+    {hsn:'N1008',name:'Headphones',vendor:'Compac',date:'2024-01-02',units:10,cost:799,amount:7990},
+    {hsn:'N1006',name:'Rgb Keyboard',vendor:'GG Traders',date:'2024-01-03',units:50,cost:340,amount:17000},
+    {hsn:'N1004',name:'Desktop',vendor:'GG Traders',date:'2024-01-04',units:100,cost:21000,amount:2100000},
+    {hsn:'N1007',name:'Camera',vendor:'GG Traders',date:'2024-01-05',units:20,cost:52000,amount:1040000},
+    {hsn:'N1001',name:'Smart Watch',vendor:'Tech99',date:'2024-01-06',units:40,cost:980,amount:39200},
+    {hsn:'N1002',name:'Laptop HP xyz i5',vendor:'Tech99',date:'2024-01-07',units:30,cost:34500,amount:1035000},
+    {hsn:'N1003',name:'Wireless Printer',vendor:'Tech99',date:'2024-01-08',units:40,cost:4600,amount:184000},
+    {hsn:'N1009',name:'Speakers',vendor:'Compac',date:'2024-01-09',units:55,cost:670,amount:36850},
+    {hsn:'N1010',name:'Tablets',vendor:'Compac',date:'2024-01-10',units:40,cost:23500,amount:940000},
+    {hsn:'N1008',name:'Headphones',vendor:'Compac',date:'2024-01-10',units:35,cost:799,amount:27965},
+    {hsn:'N1007',name:'Camera',vendor:'GG Traders',date:'2024-01-10',units:2,cost:52000,amount:104000},
+    {hsn:'N1008',name:'Headphones',vendor:'Compac',date:'2024-01-10',units:10,cost:799,amount:7990},
+  ],
+  sales:[
+    {custId:103,cust:'99store',hsn:'N1008',name:'Headphones',date:'2024-01-01',stock:13,units:10,price:958.8,amount:9588},
+    {custId:104,cust:'Rajesh Kumar',hsn:'N1006',name:'Rgb Keyboard',date:'2024-01-02',stock:13,units:37,price:408,amount:15096},
+    {custId:101,cust:'Atul Ltd.',hsn:'N1004',name:'Desktop',date:'2024-01-03',stock:35,units:10,price:25200,amount:252000},
+    {custId:100,cust:'Ram sales',hsn:'N1008',name:'Headphones',date:'2024-01-04',stock:13,units:32,price:958.8,amount:30681.6},
+    {custId:102,cust:'MK Tech.',hsn:'N1002',name:'Laptop HP xyz i5',date:'2024-01-05',stock:3,units:27,price:41400,amount:1117800},
+    {custId:103,cust:'99store',hsn:'N1004',name:'Desktop',date:'2024-01-06',stock:35,units:55,price:25200,amount:1386000},
+    {custId:105,cust:'Amit',hsn:'N1010',name:'Tablets',date:'2024-01-07',stock:3,units:33,price:28200,amount:930600},
+    {custId:106,cust:'Jain Tel.',hsn:'N1009',name:'Speakers',date:'2024-01-08',stock:3,units:52,price:804,amount:41808},
+    {custId:104,cust:'Rajesh Kumar',hsn:'N1010',name:'Tablets',date:'2024-01-08',stock:3,units:4,price:28200,amount:112800},
+    {custId:103,cust:'99store',hsn:'N1001',name:'Smart Watch',date:'2024-01-08',stock:3,units:37,price:1176,amount:43512},
+    {custId:104,cust:'Rajesh Kumar',hsn:'N1007',name:'Camera',date:'2024-01-08',stock:14,units:4,price:62400,amount:249600},
+    {custId:105,cust:'Amit',hsn:'N1007',name:'Camera',date:'2024-01-08',stock:14,units:4,price:62400,amount:249600},
+    {custId:104,cust:'Rajesh Kumar',hsn:'N1003',name:'Wireless Printer',date:'2024-01-08',stock:35,units:5,price:5520,amount:27600},
+  ],
+  inventory:[
+    {hsn:'N1001',name:'Smart Watch',cost:980,pUnits:40,sUnits:37,stock:3,stockAmt:2940,reorder:true,vendor:'Tech99',vendorPhone:'9812xxxxxx'},
+    {hsn:'N1002',name:'Laptop HP xyz i5',cost:34500,pUnits:30,sUnits:27,stock:3,stockAmt:103500,reorder:true,vendor:'Tech99',vendorPhone:'9812xxxxxx'},
+    {hsn:'N1003',name:'Wireless Printer',cost:4600,pUnits:40,sUnits:5,stock:35,stockAmt:161000,reorder:false,vendor:'Tech99',vendorPhone:'9812xxxxxx'},
+    {hsn:'N1004',name:'Desktop',cost:21000,pUnits:100,sUnits:65,stock:35,stockAmt:735000,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
+    {hsn:'N1005',name:'Mouse',cost:200,pUnits:20,sUnits:0,stock:20,stockAmt:4000,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
+    {hsn:'N1006',name:'Rgb Keyboard',cost:340,pUnits:50,sUnits:37,stock:13,stockAmt:4420,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
+    {hsn:'N1007',name:'Camera',cost:52000,pUnits:22,sUnits:8,stock:14,stockAmt:728000,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
+    {hsn:'N1008',name:'Headphones',cost:799,pUnits:55,sUnits:42,stock:13,stockAmt:10387,reorder:false,vendor:'Compac',vendorPhone:'9814xxxxxx'},
+    {hsn:'N1009',name:'Speakers',cost:670,pUnits:55,sUnits:52,stock:3,stockAmt:2010,reorder:true,vendor:'Compac',vendorPhone:'9814xxxxxx'},
+    {hsn:'N1010',name:'Tablets',cost:23500,pUnits:40,sUnits:37,stock:3,stockAmt:70500,reorder:true,vendor:'Compac',vendorPhone:'9814xxxxxx'},
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════
+//  CONNECTION
+// ══════════════════════════════════════════════════════════════
+async function connectMongo() {
+  const connString = document.getElementById('cfg-conn').value.trim();
+  const clusterInput = document.getElementById('cfg-cluster').value.trim();
+  const dbInput = document.getElementById('cfg-db').value.trim();
+  const errEl = document.getElementById('setup-error');
+  errEl.style.display='none';
+
+  if (!connString) { errEl.textContent='⚠ Please fill in the MongoDB connection string.'; errEl.style.display='block'; return; }
+
+  let cluster = clusterInput;
+  let db = dbInput;
+  const hostMatch = connString.match(/@([^/]+)(?:\/|$)/);
+  const dbMatch = connString.match(/\/([^?]+)(?:\?|$)/);
+  if (!cluster && hostMatch){ cluster = hostMatch[1]; }
+  if (!db && dbMatch){ db = dbMatch[1]; }
+  if (!cluster) cluster = 'ZS';
+  if (!db) db = 'inventory_db';
+
+  cfg = { connectionString: connString, cluster, db };
+
+  const btn = document.getElementById('connect-btn'), lbl = document.getElementById('connect-label');
+  btn.disabled = true; lbl.innerHTML = '<span class="spinner"></span> Connecting…';
+
+  // Browser apps cannot open a raw MongoDB URI directly without a backend proxy.
+  // The URI is stored here for later use or backend integration.
+  isDemo = false;
+  launchApp('🍃 MongoDB URI');
+}
+
+function useDemoData() {
+  isDemo=true; data=JSON.parse(JSON.stringify(DEMO)); launchApp('⚡ Demo Mode');
+}
+
+function launchApp(modeLabel) {
+  document.getElementById('db-setup').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('db-status-text').textContent=modeLabel;
+  if(isDemo){ document.getElementById('db-pill').classList.add('offline'); document.getElementById('db-dot').classList.remove('pulse'); }
+  loadData();
+}
+
+function disconnectDB() {
+  if(!confirm('Disconnect and return to setup screen?')) return;
+  document.getElementById('db-setup').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('connect-btn').disabled=false;
+  document.getElementById('connect-label').textContent='🍃 Connect to MongoDB';
+  document.getElementById('setup-error').style.display='none';
+  document.getElementById('db-pill').classList.remove('offline');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOAD DATA
+// ══════════════════════════════════════════════════════════════
+function showLoading(msg){ document.getElementById('loading-text').textContent=msg; document.getElementById('loading-overlay').classList.remove('hidden'); }
+function hideLoading(){ document.getElementById('loading-overlay').classList.add('hidden'); }
+
+function parseDate(d){ try{ return typeof d==='string'?d:new Date(d.$date||d).toISOString().split('T')[0]; }catch{return '';} }
+
+async function loadData() {
+  if(isDemo){ buildAll(); return; }
+  showLoading('Loading data from MongoDB…');
+  try {
+    const [products,customers,vendors,purchases,sales,inventory] = await Promise.all([
+      mongoFind('products'), mongoFind('customers'), mongoFind('vendors'),
+      mongoFind('purchases',{},500), mongoFind('sales',{},500), mongoFind('inventory')
+    ]);
+    data.products  = products.map(p=>({hsn:p.hsn,name:p.name,cost:p.costPrice,price:p.sellingPrice}));
+    data.customers = customers.map(c=>({id:c.custId,name:c.name,email:c.email,address:c.address}));
+    data.vendors   = vendors.map(v=>({hsn:v.hsn,name:v.productName,vendor:v.vendorName,phone:v.phone,address:v.address}));
+    data.purchase  = purchases.map(p=>({hsn:p.hsn,name:p.productName,vendor:p.vendor,date:parseDate(p.date),units:p.units,cost:p.costPerUnit,amount:p.amount}));
+    data.sales     = sales.map(s=>({custId:s.custId,cust:s.custName,hsn:s.hsn,name:s.productName,date:parseDate(s.date),stock:s.stockAtTime,units:s.units,price:s.pricePerUnit,amount:s.amount}));
+    data.inventory = inventory.map(i=>({hsn:i.hsn,name:i.productName,cost:i.costPrice,pUnits:i.purchasedUnits,sUnits:i.soldUnits,stock:i.stockUnits,stockAmt:i.stockValue,reorder:i.reorder,vendor:i.vendor,vendorPhone:i.vendorPhone}));
+    buildAll(); showToast('Synced from MongoDB ✓');
+  } catch(e) {
+    showToast('Fetch error: '+e.message, true);
+    if(!data.products.length){ data=JSON.parse(JSON.stringify(DEMO)); buildAll(); }
+  } finally { hideLoading(); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════
+const fmt = n => '₹'+Number(n).toLocaleString('en-IN');
+const fmtDate = d => { try{return d.split('-').reverse().join('/');}catch{return d;} };
+function stockChip(s){ return s<=5?`<span class="chip chip-red">⚠ ${s}</span>`:s<=15?`<span class="chip chip-yellow">⚡ ${s}</span>`:`<span class="chip chip-green">✓ ${s}</span>`; }
+function buildTable(id,headers,rows){ const t=document.getElementById(id); t.innerHTML=`<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`; }
+function filterTable(id,q){ document.getElementById(id).querySelectorAll('tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none'); }
+
+// ══════════════════════════════════════════════════════════════
+//  BUILD TABLES
+// ══════════════════════════════════════════════════════════════
+function buildAll() {
+  const maxStock = Math.max(1,...data.inventory.map(i=>i.pUnits));
+  const alerts = data.inventory.filter(i=>i.reorder||i.stock<=5);
+
+  document.getElementById('stat-products').textContent=data.products.length;
+  document.getElementById('stat-purchase').textContent=fmt(data.purchase.reduce((s,p)=>s+p.amount,0));
+  document.getElementById('stat-sales').textContent=fmt(data.sales.reduce((s,p)=>s+p.amount,0));
+  document.getElementById('stat-alerts').textContent=alerts.length;
+  document.getElementById('alert-badge').textContent=alerts.length;
+  document.getElementById('alert-count').textContent=alerts.length;
+
+  document.getElementById('notif-list').innerHTML = alerts.length===0
+    ? '<div class="notif-item"><div class="notif-dot" style="background:var(--accent)"></div>✅ All stock levels are healthy</div>'
+    : alerts.map(i=>`<div class="notif-item"><div class="notif-dot"></div>📞 <b>${i.name}</b> needs Re-Order! — Vendor: ${i.vendor||'N/A'} <span class="mono">PH. ${i.vendorPhone||'N/A'}</span></div>`).join('');
+
+  buildTable('inv-table',['HSN Code','Product','Cost','Purchased','Sold','Stock','Stock Value','Status'],
+    data.inventory.map(i=>[`<span class="mono">${i.hsn}</span>`,i.name,fmt(i.cost),i.pUnits,i.sUnits,stockChip(i.stock),fmt(i.stockAmt),(i.reorder||i.stock<=5)?`<span class="chip chip-red">Re-Order</span>`:`<span class="chip chip-green">OK</span>`]));
+  document.getElementById('inv-count').textContent=data.inventory.length+' items';
+
+  buildTable('prod-table',['HSN Code','Product Name','Cost Price','Selling Price','Margin','Actions'],
+    data.products.map(p=>[`<span class="mono">${p.hsn}</span>`,p.name,fmt(p.cost),fmt(p.price),`<span class="chip chip-green">${(((p.price-p.cost)/p.cost)*100).toFixed(0)}%</span>`,`<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;" onclick="deleteProduct('${p.hsn}')">Remove</button>`]));
+  document.getElementById('prod-count').textContent=data.products.length+' products';
+
+  buildTable('pur-table',['HSN','Product','Vendor','Date','Units','Cost/Unit','Amount'],
+    data.purchase.map(p=>[`<span class="mono">${p.hsn}</span>`,p.name,`<span class="chip chip-blue">${p.vendor}</span>`,`<span class="mono">${fmtDate(p.date)}</span>`,p.units,fmt(p.cost),fmt(p.amount)]));
+  document.getElementById('pur-count').textContent=data.purchase.length+' records · Total: '+fmt(data.purchase.reduce((s,p)=>s+p.amount,0));
+
+  buildTable('sal-table',['Customer ID','Customer','Product','Date','Units','Price','Amount'],
+    data.sales.map(s=>[`<span class="mono">${s.custId}</span>`,s.cust,s.name,`<span class="mono">${fmtDate(s.date)}</span>`,s.units,fmt(s.price),fmt(s.amount)]));
+  document.getElementById('sal-count').textContent=data.sales.length+' records · Total: '+fmt(data.sales.reduce((s,p)=>s+p.amount,0));
+
+  buildTable('cust-table',['Cust ID','Name','Email','Address','Actions'],
+    data.customers.map(c=>[`<span class="mono">${c.id}</span>`,`<strong>${c.name}</strong>`,`<span class="mono">${c.email}</span>`,c.address,`<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;" onclick="deleteCustomer(${c.id})">Remove</button>`]));
+  document.getElementById('cust-count').textContent=data.customers.length+' customers';
+
+  buildTable('vend-table',['HSN Code','Product','Vendor','Phone','Address','Actions'],
+    data.vendors.map(v=>[`<span class="mono">${v.hsn}</span>`,v.name,`<span class="chip chip-blue">${v.vendor}</span>`,`<span class="mono">${v.phone}</span>`,v.address,`<button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;" onclick="deleteVendor('${v.hsn}')">Remove</button>`]));
+  document.getElementById('vend-count').textContent=data.vendors.length+' vendor records';
+
+  buildTable('dash-table',['Product','Stock','Stock Value','Status'],
+    data.inventory.map(i=>[i.name,
+      `<div style="display:flex;align-items:center;gap:10px;"><div class="stock-bar"><div class="stock-fill" style="width:${i.stock/maxStock*100}%;background:${i.stock<=5?'var(--accent3)':i.stock<=15?'var(--accent4)':'var(--accent)'}"></div></div><span style="font-size:12px;font-family:'DM Mono',monospace;">${i.stock}</span></div>`,
+      fmt(i.stockAmt),(i.reorder||i.stock<=5)?`<span class="chip chip-red">Re-Order</span>`:`<span class="chip chip-green">OK</span>`]));
+  document.getElementById('dash-inv-count').textContent=data.inventory.length+' items';
+
+  // Bar chart
+  document.getElementById('stock-chart').innerHTML=data.inventory.map(i=>{
+    const h=Math.max(8,Math.round(i.stock/maxStock*100));
+    const c=i.stock<=5?'var(--accent3)':i.stock<=15?'var(--accent4)':'var(--accent)';
+    return `<div class="bar-item"><span class="bar-val">${i.stock}</span><div class="bar" style="height:${h}px;background:${c};opacity:.85" title="${i.name}: ${i.stock}"></div><span class="bar-label">${i.name.split(' ')[0]}</span></div>`;
+  }).join('');
+
+  // Customer sales
+  const cs={};data.sales.forEach(s=>{cs[s.cust]=(cs[s.cust]||0)+s.amount;});
+  const sorted=Object.entries(cs).sort((a,b)=>b[1]-a[1]);
+  const total=sorted.reduce((s,[,v])=>s+v,0)||1;
+  const colors=['var(--accent)','var(--accent2)','var(--accent4)','var(--accent3)','#b084ff','#ff9d5c','#5cc8ff'];
+  document.getElementById('sales-chart').innerHTML=sorted.map(([name,val],i)=>`
+    <div class="legend-item" style="margin-bottom:10px;">
+      <div class="legend-dot" style="background:${colors[i%colors.length]}"></div>
+      <div style="flex:1;font-size:12px;">${name}</div>
+      <div style="width:80px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:0 8px;align-self:center;"><div style="height:100%;width:${(val/total*100).toFixed(1)}%;background:${colors[i%colors.length]};border-radius:3px;"></div></div>
+      <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted2);width:70px;text-align:right;">${fmt(val)}</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════════════════════════
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('topbar-title').textContent={dashboard:'Dashboard',inventory:'Inventory',products:'Products',purchase:'Purchase',sales:'Sales',customers:'Customers',vendors:'Vendors'}[id]||id;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════════════════════
+function openModal(id){
+  closeModals();
+  if(id==='add-purchase'){
+    document.getElementById('pur-product').innerHTML=data.products.map(p=>`<option value="${p.hsn}">${p.name}</option>`).join('');
+    document.getElementById('pur-vendor').innerHTML=[...new Set(data.vendors.map(v=>v.vendor))].map(v=>`<option>${v}</option>`).join('');
+    document.getElementById('pur-date').value=new Date().toISOString().split('T')[0];
+  }
+  if(id==='add-sale'){
+    document.getElementById('sal-customer').innerHTML=data.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    document.getElementById('sal-product').innerHTML=data.products.map(p=>`<option value="${p.hsn}">${p.name}</option>`).join('');
+    document.getElementById('sal-date').value=new Date().toISOString().split('T')[0];
+  }
+  document.getElementById('modal-'+id).classList.add('open');
+}
+function closeModals(){ document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('open')); }
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals();}));
+
+// ══════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════
+function showToast(msg,isError=false){
+  const t=document.getElementById('toast');
+  t.textContent=(isError?'✗ ':'✓ ')+msg;
+  t.className='toast show'+(isError?' error':'');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ADD ACTIONS — write to MongoDB or update demo data
+// ══════════════════════════════════════════════════════════════
+async function addProduct(){
+  const hsn=document.getElementById('np-hsn').value.trim();
+  const name=document.getElementById('np-name').value.trim();
+  const cost=parseFloat(document.getElementById('np-cost').value)||0;
+  const price=parseFloat(document.getElementById('np-price').value)||0;
+  if(!name) return;
+  if(!isDemo){
+    try{ await mongoInsertOne('products',{hsn,name,costPrice:cost,sellingPrice:price,margin:cost>0?+((price-cost)/cost*100).toFixed(1):0,createdAt:new Date().toISOString()}); }
+    catch(e){ showToast('DB error: '+e.message,true); return; }
+  }
+  data.products.push({hsn,name,cost,price}); buildAll(); closeModals();
+  showToast('Product "'+name+'" added'+(isDemo ? '' : ' to MongoDB'));
+}
+
+async function deleteProduct(hsn){
+  if(!confirm('Remove product '+hsn+' from catalog?')) return;
+  const prod = data.products.find(p=>p.hsn===hsn);
+  if(!prod) return;
+  if(!isDemo){
+    try{
+      await mongoDeleteOne('products',{hsn});
+      await mongoDeleteOne('inventory',{hsn});
+    }catch(e){ showToast('DB delete error: '+e.message,true); return; }
+  }
+  data.products = data.products.filter(p=>p.hsn!==hsn);
+  data.inventory = data.inventory.filter(i=>i.hsn!==hsn);
+  buildAll();
+  showToast('Removed '+prod.name+(isDemo ? '' : ' from MongoDB'));
+}
+
+async function addPurchase(){
+  const hsn=document.getElementById('pur-product').value;
+  const prod=data.products.find(p=>p.hsn===hsn);
+  const vendor=document.getElementById('pur-vendor').value;
+  const units=parseInt(document.getElementById('pur-units').value)||0;
+  const date=document.getElementById('pur-date').value;
+  if(!prod||!units) return;
+  const amount=units*prod.cost;
+  if(!isDemo){
+    try{
+      await mongoInsertOne('purchases',{hsn,productName:prod.name,vendor,date,units,costPerUnit:prod.cost,amount,createdAt:new Date().toISOString()});
+      await mongoUpdateOne('inventory',{hsn},{$inc:{purchasedUnits:units,stockUnits:units,stockValue:amount}});
+    }catch(e){ showToast('DB error: '+e.message,true); return; }
+  }
+  data.purchase.push({hsn,name:prod.name,vendor,date,units,cost:prod.cost,amount});
+  const inv=data.inventory.find(i=>i.hsn===hsn);
+  if(inv){inv.pUnits+=units;inv.stock+=units;inv.stockAmt+=amount;if(inv.stock>5)inv.reorder=false;}
+  buildAll(); closeModals(); showToast(units+'× '+prod.name+' purchased'+(isDemo ? '' : ' → MongoDB'));
+}
+
+async function addSale(){
+  const custId=parseInt(document.getElementById('sal-customer').value);
+  const cust=data.customers.find(c=>c.id===custId);
+  const hsn=document.getElementById('sal-product').value;
+  const prod=data.products.find(p=>p.hsn===hsn);
+  const units=parseInt(document.getElementById('sal-units').value)||0;
+  const date=document.getElementById('sal-date').value;
+  if(!cust||!prod||!units) return;
+  const inv=data.inventory.find(i=>i.hsn===hsn);
+  const stock=inv?inv.stock:0;
+  const amount=units*prod.price;
+  if(!isDemo){
+    try{
+      await mongoInsertOne('sales',{custId,custName:cust.name,hsn,productName:prod.name,date,stockAtTime:stock,units,pricePerUnit:prod.price,amount,createdAt:new Date().toISOString()});
+      const newStock=Math.max(0,stock-units);
+      await mongoUpdateOne('inventory',{hsn},{$inc:{soldUnits:units},$set:{stockUnits:newStock,stockValue:newStock*prod.cost,reorder:newStock<=5,updatedAt:new Date().toISOString()}});
+    }catch(e){ showToast('DB error: '+e.message,true); return; }
+  }
+  data.sales.push({custId,cust:cust.name,hsn,name:prod.name,date,stock,units,price:prod.price,amount});
+  if(inv){inv.sUnits+=units;inv.stock=Math.max(0,inv.stock-units);inv.stockAmt=inv.stock*prod.cost;inv.reorder=inv.stock<=5;}
+  buildAll(); closeModals(); showToast(units+'× '+prod.name+' sold'+(isDemo ? '' : ' → MongoDB'));
+}
+
+async function addCustomer(){
+  const id=parseInt(document.getElementById('nc-id').value)||0;
+  const name=document.getElementById('nc-name').value.trim();
+  const email=document.getElementById('nc-email').value.trim();
+  const address=document.getElementById('nc-addr').value.trim();
+  if(!name) return;
+  if(!isDemo){
+    try{ await mongoInsertOne('customers',{custId:id,name,email,address,createdAt:new Date().toISOString()}); }
+    catch(e){ showToast('DB error: '+e.message,true); return; }
+  }
+  data.customers.push({id,name,email,address}); buildAll(); closeModals();
+  showToast('Customer "'+name+'" added'+(isDemo ? '' : ' → MongoDB'));
+}
+
+async function addVendor(){
+  const hsn=document.getElementById('nv-hsn').value.trim();
+  const name=document.getElementById('nv-name').value.trim();
+  const vendor=document.getElementById('nv-vendor').value.trim();
+  const phone=document.getElementById('nv-phone').value.trim();
+  const address=document.getElementById('nv-addr').value.trim();
+  if(!hsn || !name || !vendor) return;
+  if(!isDemo){
+    try{ await mongoInsertOne('vendors',{hsn,name: name,productName:name,vendorName:vendor,phone,address,createdAt:new Date().toISOString()}); }
+    catch(e){ showToast('DB error: '+e.message,true); return; }
+  }
+  data.vendors.push({hsn,name,vendor,phone,address}); buildAll(); closeModals();
+  showToast('Vendor "'+vendor+'" added'+(isDemo ? '' : ' → MongoDB'));
+}
+
+async function deleteCustomer(id){
+  if(!confirm('Remove customer ID '+id+'?')) return;
+  const cust = data.customers.find(c=>c.id===id);
+  if(!cust) return;
+  if(!isDemo){
+    try{ await mongoDeleteOne('customers',{custId:id}); }
+    catch(e){ showToast('DB delete error: '+e.message,true); return; }
+  }
+  data.customers = data.customers.filter(c=>c.id!==id);
+  buildAll();
+  showToast('Removed customer '+(cust.name||id)+(isDemo ? '' : ' from MongoDB'));
+}
+
+async function deleteVendor(hsn){
+  if(!confirm('Remove vendor record for '+hsn+'?')) return;
+  const vend = data.vendors.find(v=>v.hsn===hsn);
+  if(!vend) return;
+  if(!isDemo){
+    try{ await mongoDeleteOne('vendors',{hsn}); }
+    catch(e){ showToast('DB delete error: '+e.message,true); return; }
+  }
+  data.vendors = data.vendors.filter(v=>v.hsn!==hsn);
+  buildAll();
+  showToast('Removed vendor '+(vend.vendor||hsn)+(isDemo ? '' : ' from MongoDB'));
+}
+</script>
+</body>
+</html>
