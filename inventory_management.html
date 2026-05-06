@@ -37,8 +37,6 @@
   .setup-btn:hover{background:#00c98c;}
   .setup-btn:disabled{background:var(--muted);cursor:not-allowed;}
   .setup-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
-  .setup-demo-btn{width:100%;padding:10px;background:transparent;color:var(--muted2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:all .15s;}
-  .setup-demo-btn:hover{border-color:var(--muted);color:var(--text);}
   .setup-error{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--accent3);margin-bottom:16px;display:none;line-height:1.6;}
 
   /* ── Loading ── */
@@ -105,6 +103,7 @@
   th{background:var(--surface2);text-align:left;padding:10px 16px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;font-weight:500;border-bottom:1px solid var(--border);}
   td{padding:11px 16px;font-size:13px;border-bottom:1px solid rgba(37,41,54,.6);color:var(--text);}
   tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}
+  .empty{padding:18px 16px;text-align:center;color:var(--muted);font-style:italic;}
   .mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted2);}
   .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;}
   .chip-green{background:rgba(0,229,160,.12);color:var(--accent);}
@@ -188,9 +187,7 @@
     <button class="setup-btn" id="connect-btn" onclick="connectMongo()">
       <span id="connect-label">🍃 Connect to MongoDB</span>
     </button>
-    <hr class="setup-divider">
-    <button class="setup-demo-btn" onclick="useDemoData()">⚡ Use Demo Data (no database needed)</button>
-    <div class="setup-help" style="text-align:center;margin-top:8px;">Try the full app instantly with your Excel sample data</div>
+    <div class="setup-help" style="text-align:center;margin-top:8px;">Enter your MongoDB Atlas URI and database to launch the app.</div>
   </div>
 </div>
 
@@ -207,20 +204,20 @@
     <div class="logo">
       <div class="logo-mark">
         <div class="logo-icon"><svg fill="none" viewBox="0 0 18 18" stroke="#000" stroke-width="2"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg></div>
-        <div><div class="logo-text">InvTrack</div><div class="logo-sub">by Deepak EduWorld</div></div>
+        <div><div class="logo-text">InvTrack</div><div class="logo-sub">by Henil Zalavadiya</div></div>
       </div>
     </div>
     <nav>
       <div class="nav-label">Main</div>
-      <div class="nav-item active" onclick="showPage('dashboard',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg><span>Dashboard</span></div>
-      <div class="nav-item" onclick="showPage('inventory',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><path d="M2 4h12l-1 9H3L2 4z"/><path d="M1 2h14"/><path d="M6 7v3m4-3v3"/></svg><span>Inventory</span><span class="nav-badge pulse" id="alert-badge">–</span></div>
-      <div class="nav-item" onclick="showPage('products',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg><span>Products</span></div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg><span>Dashboard</span></div>
+      <div class="nav-item" data-page="inventory" onclick="showPage('inventory',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><path d="M2 4h12l-1 9H3L2 4z"/><path d="M1 2h14"/><path d="M6 7v3m4-3v3"/></svg><span>Inventory</span><span class="nav-badge pulse" id="alert-badge">–</span></div>
+      <div class="nav-item" data-page="products" onclick="showPage('products',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg><span>Products</span></div>
       <div class="nav-label">Transactions</div>
-      <div class="nav-item" onclick="showPage('purchase',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><path d="M2 3h12l-1.5 8H3.5L2 3z"/><circle cx="6" cy="14" r="1"/><circle cx="11" cy="14" r="1"/></svg><span>Purchase</span></div>
-      <div class="nav-item" onclick="showPage('sales',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><polyline points="1,12 5,7 8,10 11,6 15,4"/></svg><span>Sales</span></div>
+      <div class="nav-item" data-page="purchase" onclick="showPage('purchase',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><path d="M2 3h12l-1.5 8H3.5L2 3z"/><circle cx="6" cy="14" r="1"/><circle cx="11" cy="14" r="1"/></svg><span>Purchase</span></div>
+      <div class="nav-item" data-page="sales" onclick="showPage('sales',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><polyline points="1,12 5,7 8,10 11,6 15,4"/></svg><span>Sales</span></div>
       <div class="nav-label">Master Data</div>
-      <div class="nav-item" onclick="showPage('customers',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span>Customers</span></div>
-      <div class="nav-item" onclick="showPage('vendors',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="1" y="6" width="14" height="9" rx="1"/><path d="M5 6V4a3 3 0 016 0v2"/></svg><span>Vendors</span></div>
+      <div class="nav-item" data-page="customers" onclick="showPage('customers',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span>Customers</span></div>
+      <div class="nav-item" data-page="vendors" onclick="showPage('vendors',this)"><svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8"><rect x="1" y="6" width="14" height="9" rx="1"/><path d="M5 6V4a3 3 0 016 0v2"/></svg><span>Vendors</span></div>
     </nav>
   </aside>
 
@@ -229,7 +226,7 @@
       <div class="page-title" id="topbar-title">Dashboard</div>
       <div class="topbar-right">
         <button class="btn btn-ghost" onclick="loadData()" title="Refresh data from database">↻ Refresh DB</button>
-        <div class="badge-alert" onclick="showPage('inventory',document.querySelector('[onclick*=inventory]'))"><span id="alert-count">–</span> Low Stock Alerts</div>
+        <div class="badge-alert" onclick="showPage('inventory',document.querySelector('.nav-item[data-page=inventory]'))"><span id="alert-count">–</span> Low Stock Alerts</div>
         <div class="db-pill" id="db-pill" onclick="disconnectDB()" title="Click to disconnect">
           <div class="db-dot pulse" id="db-dot"></div>
           <span id="db-status-text">Connected</span>
@@ -382,7 +379,6 @@
 //  CONFIG + STATE
 // ══════════════════════════════════════════════════════════════
 let cfg = { connectionString:'', cluster:'ZS', db:'inventory_db' };
-let isDemo = false;
 let data = { products:[], customers:[], vendors:[], purchase:[], sales:[], inventory:[] };
 
 // ══════════════════════════════════════════════════════════════
@@ -402,80 +398,7 @@ const mongoInsertOne = (col, document) => mongoReq('insertOne', col, {document})
 const mongoUpdateOne = (col, filter, update) => mongoReq('updateOne', col, {filter, update});
 const mongoDeleteOne = (col, filter) => mongoReq('deleteOne', col, {filter});
 
-// ══════════════════════════════════════════════════════════════
-//  DEMO DATA
-// ══════════════════════════════════════════════════════════════
-const DEMO = {
-  products:[
-    {hsn:'N1001',name:'Smart Watch',cost:980,price:1176},{hsn:'N1002',name:'Laptop HP xyz i5',cost:34500,price:41400},
-    {hsn:'N1003',name:'Wireless Printer',cost:4600,price:5520},{hsn:'N1004',name:'Desktop',cost:21000,price:25200},
-    {hsn:'N1005',name:'Mouse',cost:200,price:240},{hsn:'N1006',name:'Rgb Keyboard',cost:340,price:408},
-    {hsn:'N1007',name:'Camera',cost:52000,price:62400},{hsn:'N1008',name:'Headphones',cost:799,price:958.8},
-    {hsn:'N1009',name:'Speakers',cost:670,price:804},{hsn:'N1010',name:'Tablets',cost:23500,price:28200},
-  ],
-  customers:[
-    {id:100,name:'Ram sales',email:'Ram@gmail.com',address:'Delhi, India'},{id:101,name:'Atul Ltd.',email:'Atu@gmail.com',address:'121102, Palwal, HR'},
-    {id:102,name:'MK Tech.',email:'MK@gmail.com',address:'Faridabad, 121101'},{id:103,name:'99store',email:'99s@gmail.com',address:'Agra, UP'},
-    {id:104,name:'Rajesh Kumar',email:'Raj@gmail.com',address:'New Delhi, 110011'},{id:105,name:'Amit',email:'Ami@gmail.com',address:'Gurgaon, Sec-15'},
-    {id:106,name:'Jain Tel.',email:'Jai@gmail.com',address:'Janpath, New Delhi'},
-  ],
-  vendors:[
-    {hsn:'N1001',name:'Smart Watch',vendor:'Tech99',phone:'9812xxxxxx',address:'Faridabad, 121101'},
-    {hsn:'N1002',name:'Laptop HP xyz i5',vendor:'Tech99',phone:'9812xxxxxx',address:'Faridabad, 121102'},
-    {hsn:'N1003',name:'Wireless Printer',vendor:'Tech99',phone:'9812xxxxxx',address:'Faridabad, 121103'},
-    {hsn:'N1004',name:'Desktop',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-15'},
-    {hsn:'N1005',name:'Mouse',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-16'},
-    {hsn:'N1006',name:'Rgb Keyboard',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-17'},
-    {hsn:'N1007',name:'Camera',vendor:'GG Traders',phone:'9813xxxxxx',address:'Gurgaon, Sec-18'},
-    {hsn:'N1008',name:'Headphones',vendor:'Compac',phone:'9814xxxxxx',address:'New Delhi, 110012'},
-    {hsn:'N1009',name:'Speakers',vendor:'Compac',phone:'9814xxxxxx',address:'New Delhi, 110013'},
-    {hsn:'N1010',name:'Tablets',vendor:'Compac',phone:'9814xxxxxx',address:'New Delhi, 110014'},
-  ],
-  purchase:[
-    {hsn:'N1005',name:'Mouse',vendor:'GG Traders',date:'2024-01-01',units:20,cost:200,amount:4000},
-    {hsn:'N1008',name:'Headphones',vendor:'Compac',date:'2024-01-02',units:10,cost:799,amount:7990},
-    {hsn:'N1006',name:'Rgb Keyboard',vendor:'GG Traders',date:'2024-01-03',units:50,cost:340,amount:17000},
-    {hsn:'N1004',name:'Desktop',vendor:'GG Traders',date:'2024-01-04',units:100,cost:21000,amount:2100000},
-    {hsn:'N1007',name:'Camera',vendor:'GG Traders',date:'2024-01-05',units:20,cost:52000,amount:1040000},
-    {hsn:'N1001',name:'Smart Watch',vendor:'Tech99',date:'2024-01-06',units:40,cost:980,amount:39200},
-    {hsn:'N1002',name:'Laptop HP xyz i5',vendor:'Tech99',date:'2024-01-07',units:30,cost:34500,amount:1035000},
-    {hsn:'N1003',name:'Wireless Printer',vendor:'Tech99',date:'2024-01-08',units:40,cost:4600,amount:184000},
-    {hsn:'N1009',name:'Speakers',vendor:'Compac',date:'2024-01-09',units:55,cost:670,amount:36850},
-    {hsn:'N1010',name:'Tablets',vendor:'Compac',date:'2024-01-10',units:40,cost:23500,amount:940000},
-    {hsn:'N1008',name:'Headphones',vendor:'Compac',date:'2024-01-10',units:35,cost:799,amount:27965},
-    {hsn:'N1007',name:'Camera',vendor:'GG Traders',date:'2024-01-10',units:2,cost:52000,amount:104000},
-    {hsn:'N1008',name:'Headphones',vendor:'Compac',date:'2024-01-10',units:10,cost:799,amount:7990},
-  ],
-  sales:[
-    {custId:103,cust:'99store',hsn:'N1008',name:'Headphones',date:'2024-01-01',stock:13,units:10,price:958.8,amount:9588},
-    {custId:104,cust:'Rajesh Kumar',hsn:'N1006',name:'Rgb Keyboard',date:'2024-01-02',stock:13,units:37,price:408,amount:15096},
-    {custId:101,cust:'Atul Ltd.',hsn:'N1004',name:'Desktop',date:'2024-01-03',stock:35,units:10,price:25200,amount:252000},
-    {custId:100,cust:'Ram sales',hsn:'N1008',name:'Headphones',date:'2024-01-04',stock:13,units:32,price:958.8,amount:30681.6},
-    {custId:102,cust:'MK Tech.',hsn:'N1002',name:'Laptop HP xyz i5',date:'2024-01-05',stock:3,units:27,price:41400,amount:1117800},
-    {custId:103,cust:'99store',hsn:'N1004',name:'Desktop',date:'2024-01-06',stock:35,units:55,price:25200,amount:1386000},
-    {custId:105,cust:'Amit',hsn:'N1010',name:'Tablets',date:'2024-01-07',stock:3,units:33,price:28200,amount:930600},
-    {custId:106,cust:'Jain Tel.',hsn:'N1009',name:'Speakers',date:'2024-01-08',stock:3,units:52,price:804,amount:41808},
-    {custId:104,cust:'Rajesh Kumar',hsn:'N1010',name:'Tablets',date:'2024-01-08',stock:3,units:4,price:28200,amount:112800},
-    {custId:103,cust:'99store',hsn:'N1001',name:'Smart Watch',date:'2024-01-08',stock:3,units:37,price:1176,amount:43512},
-    {custId:104,cust:'Rajesh Kumar',hsn:'N1007',name:'Camera',date:'2024-01-08',stock:14,units:4,price:62400,amount:249600},
-    {custId:105,cust:'Amit',hsn:'N1007',name:'Camera',date:'2024-01-08',stock:14,units:4,price:62400,amount:249600},
-    {custId:104,cust:'Rajesh Kumar',hsn:'N1003',name:'Wireless Printer',date:'2024-01-08',stock:35,units:5,price:5520,amount:27600},
-  ],
-  inventory:[
-    {hsn:'N1001',name:'Smart Watch',cost:980,pUnits:40,sUnits:37,stock:3,stockAmt:2940,reorder:true,vendor:'Tech99',vendorPhone:'9812xxxxxx'},
-    {hsn:'N1002',name:'Laptop HP xyz i5',cost:34500,pUnits:30,sUnits:27,stock:3,stockAmt:103500,reorder:true,vendor:'Tech99',vendorPhone:'9812xxxxxx'},
-    {hsn:'N1003',name:'Wireless Printer',cost:4600,pUnits:40,sUnits:5,stock:35,stockAmt:161000,reorder:false,vendor:'Tech99',vendorPhone:'9812xxxxxx'},
-    {hsn:'N1004',name:'Desktop',cost:21000,pUnits:100,sUnits:65,stock:35,stockAmt:735000,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
-    {hsn:'N1005',name:'Mouse',cost:200,pUnits:20,sUnits:0,stock:20,stockAmt:4000,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
-    {hsn:'N1006',name:'Rgb Keyboard',cost:340,pUnits:50,sUnits:37,stock:13,stockAmt:4420,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
-    {hsn:'N1007',name:'Camera',cost:52000,pUnits:22,sUnits:8,stock:14,stockAmt:728000,reorder:false,vendor:'GG Traders',vendorPhone:'9813xxxxxx'},
-    {hsn:'N1008',name:'Headphones',cost:799,pUnits:55,sUnits:42,stock:13,stockAmt:10387,reorder:false,vendor:'Compac',vendorPhone:'9814xxxxxx'},
-    {hsn:'N1009',name:'Speakers',cost:670,pUnits:55,sUnits:52,stock:3,stockAmt:2010,reorder:true,vendor:'Compac',vendorPhone:'9814xxxxxx'},
-    {hsn:'N1010',name:'Tablets',cost:23500,pUnits:40,sUnits:37,stock:3,stockAmt:70500,reorder:true,vendor:'Compac',vendorPhone:'9814xxxxxx'},
-  ]
-};
-
-// ══════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════=
 //  CONNECTION
 // ══════════════════════════════════════════════════════════════
 async function connectMongo() {
@@ -503,19 +426,13 @@ async function connectMongo() {
 
   // Browser apps cannot open a raw MongoDB URI directly without a backend proxy.
   // The URI is stored here for later use or backend integration.
-  isDemo = false;
   launchApp('🍃 MongoDB URI');
-}
-
-function useDemoData() {
-  isDemo=true; data=JSON.parse(JSON.stringify(DEMO)); launchApp('⚡ Demo Mode');
 }
 
 function launchApp(modeLabel) {
   document.getElementById('db-setup').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('db-status-text').textContent=modeLabel;
-  if(isDemo){ document.getElementById('db-pill').classList.add('offline'); document.getElementById('db-dot').classList.remove('pulse'); }
   loadData();
 }
 
@@ -537,11 +454,31 @@ function hideLoading(){ document.getElementById('loading-overlay').classList.add
 
 function parseDate(d){ try{ return typeof d==='string'?d:new Date(d.$date||d).toISOString().split('T')[0]; }catch{return '';} }
 
+function computeInventoryFromData(){
+  const invByHsn = new Map();
+  data.products.forEach(p=>invByHsn.set(p.hsn,{hsn:p.hsn,name:p.name,cost:p.cost,pUnits:0,sUnits:0,stock:0,stockAmt:0,reorder:false,vendor:'',vendorPhone:''}));
+  data.purchase.forEach(p=>{
+    const inv = invByHsn.get(p.hsn);
+    if(inv){ inv.pUnits += Number(p.units)||0; inv.stock += Number(p.units)||0; }
+  });
+  data.sales.forEach(s=>{
+    const inv = invByHsn.get(s.hsn);
+    if(inv){ inv.sUnits += Number(s.units)||0; inv.stock -= Number(s.units)||0; }
+  });
+  invByHsn.forEach(inv=>{
+    inv.stock = Math.max(0, inv.stock);
+    inv.stockAmt = inv.stock * inv.cost;
+    inv.reorder = inv.stock <= 5;
+    const vendor = data.vendors.find(v=>v.hsn===inv.hsn);
+    if(vendor){ inv.vendor = vendor.vendor; inv.vendorPhone = vendor.phone; }
+  });
+  return [...invByHsn.values()];
+}
+
 async function loadData() {
-  if(isDemo){ buildAll(); return; }
   showLoading('Loading data from MongoDB…');
   try {
-    const [products,customers,vendors,purchases,sales,inventory] = await Promise.all([
+    const [products,customers,vendors,purchases,sales,inventoryDocs] = await Promise.all([
       mongoFind('products'), mongoFind('customers'), mongoFind('vendors'),
       mongoFind('purchases',{},500), mongoFind('sales',{},500), mongoFind('inventory')
     ]);
@@ -550,11 +487,12 @@ async function loadData() {
     data.vendors   = vendors.map(v=>({hsn:v.hsn,name:v.productName,vendor:v.vendorName,phone:v.phone,address:v.address}));
     data.purchase  = purchases.map(p=>({hsn:p.hsn,name:p.productName,vendor:p.vendor,date:parseDate(p.date),units:p.units,cost:p.costPerUnit,amount:p.amount}));
     data.sales     = sales.map(s=>({custId:s.custId,cust:s.custName,hsn:s.hsn,name:s.productName,date:parseDate(s.date),stock:s.stockAtTime,units:s.units,price:s.pricePerUnit,amount:s.amount}));
-    data.inventory = inventory.map(i=>({hsn:i.hsn,name:i.productName,cost:i.costPrice,pUnits:i.purchasedUnits,sUnits:i.soldUnits,stock:i.stockUnits,stockAmt:i.stockValue,reorder:i.reorder,vendor:i.vendor,vendorPhone:i.vendorPhone}));
+    data.inventory = inventoryDocs.length
+      ? inventoryDocs.map(i=>({hsn:i.hsn,name:i.productName,cost:i.costPrice,pUnits:i.purchasedUnits,sUnits:i.soldUnits,stock:i.stockUnits,stockAmt:i.stockValue,reorder:i.reorder,vendor:i.vendor,vendorPhone:i.vendorPhone}))
+      : computeInventoryFromData();
     buildAll(); showToast('Synced from MongoDB ✓');
   } catch(e) {
     showToast('Fetch error: '+e.message, true);
-    if(!data.products.length){ data=JSON.parse(JSON.stringify(DEMO)); buildAll(); }
   } finally { hideLoading(); }
 }
 
@@ -564,7 +502,7 @@ async function loadData() {
 const fmt = n => '₹'+Number(n).toLocaleString('en-IN');
 const fmtDate = d => { try{return d.split('-').reverse().join('/');}catch{return d;} };
 function stockChip(s){ return s<=5?`<span class="chip chip-red">⚠ ${s}</span>`:s<=15?`<span class="chip chip-yellow">⚡ ${s}</span>`:`<span class="chip chip-green">✓ ${s}</span>`; }
-function buildTable(id,headers,rows){ const t=document.getElementById(id); t.innerHTML=`<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`; }
+function buildTable(id,headers,rows){ const t=document.getElementById(id); const body = rows.length ? rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td class="empty" colspan="${headers.length}">No records found.</td></tr>`; t.innerHTML=`<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody>`; }
 function filterTable(id,q){ document.getElementById(id).querySelectorAll('tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none'); }
 
 // ══════════════════════════════════════════════════════════════
@@ -640,9 +578,14 @@ function buildAll() {
 //  NAV
 // ══════════════════════════════════════════════════════════════
 function showPage(id,el){
+  const page = document.getElementById('page-'+id);
+  if(!page) return;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  page.classList.add('active');
+  if(!el){
+    el = document.querySelector(`.nav-item[data-page="${id}"]`) || document.querySelector(`.nav-item[onclick="showPage('${id}',this)"]`);
+  }
   if(el) el.classList.add('active');
   document.getElementById('topbar-title').textContent={dashboard:'Dashboard',inventory:'Inventory',products:'Products',purchase:'Purchase',sales:'Sales',customers:'Customers',vendors:'Vendors'}[id]||id;
 }
@@ -678,7 +621,7 @@ function showToast(msg,isError=false){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  ADD ACTIONS — write to MongoDB or update demo data
+//  ADD ACTIONS — write to MongoDB
 // ══════════════════════════════════════════════════════════════
 async function addProduct(){
   const hsn=document.getElementById('np-hsn').value.trim();
@@ -686,28 +629,24 @@ async function addProduct(){
   const cost=parseFloat(document.getElementById('np-cost').value)||0;
   const price=parseFloat(document.getElementById('np-price').value)||0;
   if(!name) return;
-  if(!isDemo){
-    try{ await mongoInsertOne('products',{hsn,name,costPrice:cost,sellingPrice:price,margin:cost>0?+((price-cost)/cost*100).toFixed(1):0,createdAt:new Date().toISOString()}); }
-    catch(e){ showToast('DB error: '+e.message,true); return; }
-  }
+  try{ await mongoInsertOne('products',{hsn,name,costPrice:cost,sellingPrice:price,margin:cost>0?+((price-cost)/cost*100).toFixed(1):0,createdAt:new Date().toISOString()}); }
+  catch(e){ showToast('DB error: '+e.message,true); return; }
   data.products.push({hsn,name,cost,price}); buildAll(); closeModals();
-  showToast('Product "'+name+'" added'+(isDemo ? '' : ' to MongoDB'));
+  showToast('Product "'+name+'" added to MongoDB');
 }
 
 async function deleteProduct(hsn){
   if(!confirm('Remove product '+hsn+' from catalog?')) return;
   const prod = data.products.find(p=>p.hsn===hsn);
   if(!prod) return;
-  if(!isDemo){
-    try{
-      await mongoDeleteOne('products',{hsn});
-      await mongoDeleteOne('inventory',{hsn});
-    }catch(e){ showToast('DB delete error: '+e.message,true); return; }
-  }
+  try{
+    await mongoDeleteOne('products',{hsn});
+    await mongoDeleteOne('inventory',{hsn});
+  }catch(e){ showToast('DB delete error: '+e.message,true); return; }
   data.products = data.products.filter(p=>p.hsn!==hsn);
   data.inventory = data.inventory.filter(i=>i.hsn!==hsn);
   buildAll();
-  showToast('Removed '+prod.name+(isDemo ? '' : ' from MongoDB'));
+  showToast('Removed '+prod.name+' from MongoDB');
 }
 
 async function addPurchase(){
@@ -718,16 +657,14 @@ async function addPurchase(){
   const date=document.getElementById('pur-date').value;
   if(!prod||!units) return;
   const amount=units*prod.cost;
-  if(!isDemo){
-    try{
-      await mongoInsertOne('purchases',{hsn,productName:prod.name,vendor,date,units,costPerUnit:prod.cost,amount,createdAt:new Date().toISOString()});
-      await mongoUpdateOne('inventory',{hsn},{$inc:{purchasedUnits:units,stockUnits:units,stockValue:amount}});
-    }catch(e){ showToast('DB error: '+e.message,true); return; }
-  }
+  try{
+    await mongoInsertOne('purchases',{hsn,productName:prod.name,vendor,date,units,costPerUnit:prod.cost,amount,createdAt:new Date().toISOString()});
+    await mongoUpdateOne('inventory',{hsn},{$inc:{purchasedUnits:units,stockUnits:units,stockValue:amount}});
+  }catch(e){ showToast('DB error: '+e.message,true); return; }
   data.purchase.push({hsn,name:prod.name,vendor,date,units,cost:prod.cost,amount});
   const inv=data.inventory.find(i=>i.hsn===hsn);
   if(inv){inv.pUnits+=units;inv.stock+=units;inv.stockAmt+=amount;if(inv.stock>5)inv.reorder=false;}
-  buildAll(); closeModals(); showToast(units+'× '+prod.name+' purchased'+(isDemo ? '' : ' → MongoDB'));
+  buildAll(); closeModals(); showToast(units+'× '+prod.name+' purchased to MongoDB');
 }
 
 async function addSale(){
@@ -741,16 +678,14 @@ async function addSale(){
   const inv=data.inventory.find(i=>i.hsn===hsn);
   const stock=inv?inv.stock:0;
   const amount=units*prod.price;
-  if(!isDemo){
-    try{
-      await mongoInsertOne('sales',{custId,custName:cust.name,hsn,productName:prod.name,date,stockAtTime:stock,units,pricePerUnit:prod.price,amount,createdAt:new Date().toISOString()});
-      const newStock=Math.max(0,stock-units);
-      await mongoUpdateOne('inventory',{hsn},{$inc:{soldUnits:units},$set:{stockUnits:newStock,stockValue:newStock*prod.cost,reorder:newStock<=5,updatedAt:new Date().toISOString()}});
-    }catch(e){ showToast('DB error: '+e.message,true); return; }
-  }
+  try{
+    await mongoInsertOne('sales',{custId,custName:cust.name,hsn,productName:prod.name,date,stockAtTime:stock,units,pricePerUnit:prod.price,amount,createdAt:new Date().toISOString()});
+    const newStock=Math.max(0,stock-units);
+    await mongoUpdateOne('inventory',{hsn},{$inc:{soldUnits:units},$set:{stockUnits:newStock,stockValue:newStock*prod.cost,reorder:newStock<=5,updatedAt:new Date().toISOString()}});
+  }catch(e){ showToast('DB error: '+e.message,true); return; }
   data.sales.push({custId,cust:cust.name,hsn,name:prod.name,date,stock,units,price:prod.price,amount});
   if(inv){inv.sUnits+=units;inv.stock=Math.max(0,inv.stock-units);inv.stockAmt=inv.stock*prod.cost;inv.reorder=inv.stock<=5;}
-  buildAll(); closeModals(); showToast(units+'× '+prod.name+' sold'+(isDemo ? '' : ' → MongoDB'));
+  buildAll(); closeModals(); showToast(units+'× '+prod.name+' sold to MongoDB');
 }
 
 async function addCustomer(){
@@ -759,12 +694,10 @@ async function addCustomer(){
   const email=document.getElementById('nc-email').value.trim();
   const address=document.getElementById('nc-addr').value.trim();
   if(!name) return;
-  if(!isDemo){
-    try{ await mongoInsertOne('customers',{custId:id,name,email,address,createdAt:new Date().toISOString()}); }
-    catch(e){ showToast('DB error: '+e.message,true); return; }
-  }
+  try{ await mongoInsertOne('customers',{custId:id,name,email,address,createdAt:new Date().toISOString()}); }
+  catch(e){ showToast('DB error: '+e.message,true); return; }
   data.customers.push({id,name,email,address}); buildAll(); closeModals();
-  showToast('Customer "'+name+'" added'+(isDemo ? '' : ' → MongoDB'));
+  showToast('Customer "'+name+'" added to MongoDB');
 }
 
 async function addVendor(){
@@ -774,38 +707,32 @@ async function addVendor(){
   const phone=document.getElementById('nv-phone').value.trim();
   const address=document.getElementById('nv-addr').value.trim();
   if(!hsn || !name || !vendor) return;
-  if(!isDemo){
-    try{ await mongoInsertOne('vendors',{hsn,name: name,productName:name,vendorName:vendor,phone,address,createdAt:new Date().toISOString()}); }
-    catch(e){ showToast('DB error: '+e.message,true); return; }
-  }
+  try{ await mongoInsertOne('vendors',{hsn,name: name,productName:name,vendorName:vendor,phone,address,createdAt:new Date().toISOString()}); }
+  catch(e){ showToast('DB error: '+e.message,true); return; }
   data.vendors.push({hsn,name,vendor,phone,address}); buildAll(); closeModals();
-  showToast('Vendor "'+vendor+'" added'+(isDemo ? '' : ' → MongoDB'));
+  showToast('Vendor "'+vendor+'" added to MongoDB');
 }
 
 async function deleteCustomer(id){
   if(!confirm('Remove customer ID '+id+'?')) return;
   const cust = data.customers.find(c=>c.id===id);
   if(!cust) return;
-  if(!isDemo){
-    try{ await mongoDeleteOne('customers',{custId:id}); }
-    catch(e){ showToast('DB delete error: '+e.message,true); return; }
-  }
+  try{ await mongoDeleteOne('customers',{custId:id}); }
+  catch(e){ showToast('DB delete error: '+e.message,true); return; }
   data.customers = data.customers.filter(c=>c.id!==id);
   buildAll();
-  showToast('Removed customer '+(cust.name||id)+(isDemo ? '' : ' from MongoDB'));
+  showToast('Removed customer '+(cust.name||id)+' from MongoDB');
 }
 
 async function deleteVendor(hsn){
   if(!confirm('Remove vendor record for '+hsn+'?')) return;
   const vend = data.vendors.find(v=>v.hsn===hsn);
   if(!vend) return;
-  if(!isDemo){
-    try{ await mongoDeleteOne('vendors',{hsn}); }
-    catch(e){ showToast('DB delete error: '+e.message,true); return; }
-  }
+  try{ await mongoDeleteOne('vendors',{hsn}); }
+  catch(e){ showToast('DB delete error: '+e.message,true); return; }
   data.vendors = data.vendors.filter(v=>v.hsn!==hsn);
   buildAll();
-  showToast('Removed vendor '+(vend.vendor||hsn)+(isDemo ? '' : ' from MongoDB'));
+  showToast('Removed vendor '+(vend.vendor||hsn)+' from MongoDB');
 }
 </script>
 </body>
